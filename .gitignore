@@ -1,0 +1,8 @@
+.env
+out/
+lib/
+*.jar
+*.class
+hasil_ringkasan.pdf
+hasil_ringkasan.txt
+EOF
