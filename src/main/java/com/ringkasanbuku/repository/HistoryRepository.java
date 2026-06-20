@@ -58,7 +58,8 @@ public class HistoryRepository {
             Type listType = new TypeToken<ArrayList<Summary>>(){}.getType();
             List<Summary> summaries = gson.fromJson(content, listType);
             return summaries != null ? summaries : new ArrayList<>();
-        } catch (IOException e) {
+        } catch (IOException | com.google.gson.JsonSyntaxException e) {
+            System.err.println("Gagal membaca history.json (mungkin korup): " + e.getMessage());
             return new ArrayList<>();
         }
     }
