@@ -63,7 +63,8 @@ public class MainController {
 
     @FXML
     public void handleSummarize() {
-        String text = inputArea.getText();
+        String raw = inputArea.getText();
+        String text = com.ringkasanbuku.util.TextPreprocessor.clean(raw);
         if (text == null || text.trim().isEmpty()) {
             showAlert("Error", "Teks asli tidak boleh kosong!");
             return;
