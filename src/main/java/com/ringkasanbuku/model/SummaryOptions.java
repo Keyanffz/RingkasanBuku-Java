@@ -21,7 +21,7 @@ public class SummaryOptions {
         return switch (length) {
             case SHORT  -> 150;
             case MEDIUM -> 300;
-            case LONG   -> 600;
+            case LONG   -> 1500; // <-- Naikkan nilainya
         };
     }
 
