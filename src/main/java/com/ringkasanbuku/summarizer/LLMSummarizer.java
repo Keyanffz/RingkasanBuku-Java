@@ -10,11 +10,17 @@ import java.util.concurrent.TimeUnit;
 public abstract class LLMSummarizer implements Summarizer {
 
     protected String apiKey;
+    protected java.util.List<String> apiKeys;
+    protected int currentKeyIndex = 0;
+    
     protected OkHttpClient client;
     protected static final MediaType JSON_TYPE = MediaType.get("application/json; charset=utf-8");
 
     public LLMSummarizer() {
-        this.apiKey = EnvLoader.get(getEnvKeyName());
+        this.apiKeys = EnvLoader.getKeys(getEnvKeyName());
+        if (!this.apiKeys.isEmpty()) {
+            this.apiKey = this.apiKeys.get(0);
+        }
         this.client = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
@@ -24,11 +30,24 @@ public abstract class LLMSummarizer implements Summarizer {
 
     @Override
     public String summarize(String text, SummaryOptions options) {
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new RuntimeException(getProviderName() + ": API key tidak ditemukan/kosong di .env");
+        if (apiKeys == null || apiKeys.isEmpty()) {
+            throw new RuntimeException(getProviderName() + ": API key tidak ditemukan di .env");
         }
         String prompt = buildPrompt(text, options);
-        return callAPI(prompt, options.getMaxTokens());
+        
+        Exception lastException = null;
+        for (int i = 0; i < apiKeys.size(); i++) {
+            try {
+                this.apiKey = apiKeys.get(currentKeyIndex);
+                return callAPI(prompt, options.getMaxTokens());
+            } catch (Exception e) {
+                lastException = e;
+                System.err.println(getProviderName() + " API error on key index " + currentKeyIndex + ": " + e.getMessage());
+                currentKeyIndex = (currentKeyIndex + 1) % apiKeys.size();
+                System.err.println("Switching to next key for " + getProviderName());
+            }
+        }
+        throw new RuntimeException("All API keys for " + getProviderName() + " failed. Last error: " + lastException.getMessage(), lastException);
     }
 
     protected abstract String callAPI(String prompt, int maxTokens);
