@@ -28,6 +28,12 @@ public abstract class LLMSummarizer implements Summarizer {
             .build();
     }
 
+    public String getCurrentKeyInfo() {
+        if (apiKey == null || apiKey.isBlank()) return "N/A";
+        String masked = apiKey.length() > 8 ? apiKey.substring(0, 4) + "***" + apiKey.substring(apiKey.length() - 4) : "***";
+        return "Index " + currentKeyIndex + " [" + masked + "]";
+    }
+
     @Override
     public String summarize(String text, SummaryOptions options) {
         if (apiKeys == null || apiKeys.isEmpty()) {
@@ -36,16 +42,35 @@ public abstract class LLMSummarizer implements Summarizer {
         String prompt = buildPrompt(text, options);
         
         Exception lastException = null;
+        int maxRetriesPerKey = 2; // Coba ulang maksimal 2 kali per key jika kena rate limit
+
         for (int i = 0; i < apiKeys.size(); i++) {
-            try {
-                this.apiKey = apiKeys.get(currentKeyIndex);
-                return callAPI(prompt, options.getMaxTokens());
-            } catch (Exception e) {
-                lastException = e;
-                System.err.println(getProviderName() + " API error on key index " + currentKeyIndex + ": " + e.getMessage());
-                currentKeyIndex = (currentKeyIndex + 1) % apiKeys.size();
-                System.err.println("Switching to next key for " + getProviderName());
+            this.apiKey = apiKeys.get(currentKeyIndex);
+            
+            for (int retry = 0; retry <= maxRetriesPerKey; retry++) {
+                try {
+                    return callAPI(prompt, options.getMaxTokens());
+                } catch (Exception e) {
+                    lastException = e;
+                    String errorMsg = e.getMessage().toLowerCase();
+                    System.err.println(getProviderName() + " API error on key " + getCurrentKeyInfo() + " (Attempt " + (retry + 1) + "): " + e.getMessage());
+                    
+                    // Jika error adalah 429 Rate Limit, tunggu beberapa detik lalu coba lagi
+                    if (errorMsg.contains("429") || errorMsg.contains("too many requests") || errorMsg.contains("rate limit")) {
+                        if (retry < maxRetriesPerKey) {
+                            long sleepTime = 5000L * (retry + 1); // Tunggu 5 detik, lalu 10 detik
+                            System.err.println("Rate limit terdeteksi pada " + getCurrentKeyInfo() + ". Menunggu " + (sleepTime / 1000) + " detik sebelum mencoba lagi...");
+                            try { Thread.sleep(sleepTime); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                            continue; // Coba lagi dengan key yang sama
+                        }
+                    }
+                    // Jika bukan rate limit atau sudah maksimal retry, keluar dari loop retry dan ganti key
+                    break;
+                }
             }
+            
+            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.size();
+            System.err.println("Switching to next key for " + getProviderName() + " -> " + getCurrentKeyInfo());
         }
         throw new RuntimeException("All API keys for " + getProviderName() + " failed. Last error: " + lastException.getMessage(), lastException);
     }

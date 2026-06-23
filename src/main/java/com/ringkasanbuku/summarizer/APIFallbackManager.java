@@ -25,7 +25,8 @@ public class APIFallbackManager {
             LLMSummarizer provider = providers.get(currentProviderIndex);
             try {
                 String result = provider.summarize(text, options);
-                System.out.println("[\u2713] Sukses meringkas bagian ini menggunakan provider: " + provider.getProviderName());
+                String keyInfo = provider.getCurrentKeyInfo();
+                System.out.println("[\u2713] Sukses meringkas bagian ini menggunakan provider: " + provider.getProviderName() + " dengan key " + keyInfo);
                 return result;
             } catch (Exception e) {
                 System.err.println(provider.getProviderName() + " API error: " + e.getMessage()

@@ -104,6 +104,13 @@ public class MainController {
                     
                     String chunkSummary;
                     if (useLLM) {
+                        // Tambahkan jeda waktu sebelum request berikutnya (kecuali untuk chunk pertama)
+                        // Ini untuk menghindari batas Rate Limit (429) dari API LLM yang agresif
+                        if (i > 0) {
+                            updateMessage("Menunggu sejenak untuk menghindari API Rate Limit...");
+                            Thread.sleep(3000); // Jeda 3 detik
+                            updateMessage("Meringkas bagian " + (i + 1) + " dari " + chunks.size() + "...");
+                        }
                         chunkSummary = apiFallbackManager.summarize(chunks.get(i), options);
                     } else {
                         chunkSummary = tfidfSummarizer.summarize(chunks.get(i), options);
