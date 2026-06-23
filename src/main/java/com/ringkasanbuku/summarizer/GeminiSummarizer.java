@@ -17,12 +17,13 @@ public class GeminiSummarizer extends LLMSummarizer {
     @Override
     protected String callAPI(String prompt, int maxTokens) {
         String url = API_URL + "?key=" + apiKey;
+        
         String body = gson.toJson(Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of(
                         "maxOutputTokens", maxTokens,
-                        "thinkingConfig", Map.of("thinkingLevel", "low"))));
+                        "thinkingConfig", Map.of("thinking_level", "MINIMAL")))); // ← "MINIMAL" bukan "low", pakai ALL_CAPS
 
         Request request = new Request.Builder()
                 .url(url)
@@ -36,11 +37,23 @@ public class GeminiSummarizer extends LLMSummarizer {
                 throw new RuntimeException("HTTP " + response.code() + " - " + res);
             }
 
-            return JsonParser.parseString(res).getAsJsonObject()
-                    .getAsJsonArray("candidates").get(0).getAsJsonObject()
+            var root = JsonParser.parseString(res).getAsJsonObject();
+
+            // ✅ Cek candidates null dulu (safety block atau config error)
+            if (!root.has("candidates") || root.getAsJsonArray("candidates").isEmpty()) {
+                String feedback = root.has("promptFeedback") 
+                    ? root.get("promptFeedback").toString() 
+                    : res; // print raw response kalau ga ada feedback
+                throw new RuntimeException("No candidates returned. Response: " + feedback);
+            }
+
+            return root.getAsJsonArray("candidates").get(0).getAsJsonObject()
                     .getAsJsonObject("content")
                     .getAsJsonArray("parts").get(0).getAsJsonObject()
                     .get("text").getAsString();
+
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Gemini API error: " + e.getMessage(), e);
         }

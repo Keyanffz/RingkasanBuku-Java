@@ -34,7 +34,7 @@ public class APITester {
             
             try {
                 // Kita kirim request paling minimal untuk hemat token saat nge-test
-                provider.callAPI("Balas pesan ini dengan kata 'OK' saja.", 10);
+                provider.callAPI("Balas pesan ini dengan kata 'OK' saja.", 50); // ← 10 terlalu kecil untuk reasoning model
                 System.out.println("\u2705 AKTIF (Siap digunakan)");
             } catch (Exception e) {
                 String errMsg = e.getMessage().toLowerCase();
