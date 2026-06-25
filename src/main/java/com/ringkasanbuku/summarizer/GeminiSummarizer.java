@@ -15,6 +15,8 @@ public class GeminiSummarizer extends LLMSummarizer {
     private final Gson gson = new Gson();
 
     @Override
+    // Method khusus untuk melakukan HTTP request (mengirim teks) ke server / API milik Google Gemini.
+    // Format JSON yang dikirimkan (body) sudah disesuaikan dengan aturan API Gemini (memiliki 'candidates' dan 'parts').
     protected String callAPI(String prompt, int maxTokens) {
         String url = API_URL + "?key=" + apiKey;
         

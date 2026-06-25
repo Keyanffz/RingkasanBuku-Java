@@ -35,6 +35,7 @@ public abstract class LLMSummarizer implements Summarizer {
     }
 
     @Override
+    // Method utama untuk memanggil API LLM (seperti Groq/Gemini) untuk meringkas teks
     public String summarize(String text, SummaryOptions options) {
         if (apiKeys == null || apiKeys.isEmpty()) {
             throw new RuntimeException(getProviderName() + ": API key tidak ditemukan di .env");
@@ -44,6 +45,7 @@ public abstract class LLMSummarizer implements Summarizer {
         Exception lastException = null;
         int maxRetriesPerKey = 2; // Coba ulang maksimal 2 kali per key jika kena rate limit
 
+        // Looping untuk mencoba semua API keys yang tersedia jika terjadi error (sebagai fallback/rotasi)
         for (int i = 0; i < apiKeys.size(); i++) {
             this.apiKey = apiKeys.get(currentKeyIndex);
             
@@ -79,6 +81,7 @@ public abstract class LLMSummarizer implements Summarizer {
     protected abstract String getEnvKeyName();
     public abstract String getProviderName();
 
+    // Membangun prompt (instruksi) yang akan dikirimkan ke model LLM
     protected String buildPrompt(String text, SummaryOptions options) {
         return "Kamu adalah asisten yang bertugas meringkas teks dalam Bahasa Indonesia.\n"
             + options.toPromptInstruction() + "\n\n"

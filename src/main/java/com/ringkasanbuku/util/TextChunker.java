@@ -17,6 +17,9 @@ public class TextChunker {
         this.overlap = overlap;
     }
 
+    // Memotong-motong (chunking) teks panjang menjadi beberapa bagian kecil
+    // agar tidak melebihi limit token saat dikirim ke LLM (seperti Groq/Gemini).
+    // Potongan juga dibuat sedikit tumpang tindih (overlap) agar konteks kalimat tidak terputus.
     public List<String> chunk(String text) {
         List<String> chunks = new ArrayList<>();
         if (text == null || text.isBlank())
@@ -27,6 +30,7 @@ public class TextChunker {
             int end = Math.min(start + maxChars, text.length());
 
             if (end < text.length()) {
+                // Memastikan pemotongan teks dilakukan pada akhir kata (spasi), bukan di tengah kata
                 int lastSpace = text.lastIndexOf(' ', end);
                 if (lastSpace > start)
                     end = lastSpace;
@@ -35,8 +39,7 @@ public class TextChunker {
             chunks.add(text.substring(start, end).strip());
 
             if (end >= text.length())
-                break; // 👈 FIX: sudah sampai akhir teks, berhenti
-
+                break;
             start = end - overlap;
             if (start < 0)
                 start = 0;

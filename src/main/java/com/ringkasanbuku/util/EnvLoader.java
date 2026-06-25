@@ -13,6 +13,8 @@ public class EnvLoader {
         return dotenv.get(key);
     }
 
+    // Mengambil daftar API Key dari file .env berdasarkan prefix.
+    // Fitur ini mendukung multiple API keys (contoh: GROQ_KEY, GROQ_KEY_1, GROQ_KEY_2) untuk rotasi / fallback.
     public static java.util.List<String> getKeys(String prefix) {
         java.util.List<String> keys = new java.util.ArrayList<>();
         String bareKey = get(prefix);

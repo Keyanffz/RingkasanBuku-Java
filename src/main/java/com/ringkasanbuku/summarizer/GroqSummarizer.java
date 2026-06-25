@@ -16,6 +16,8 @@ public class GroqSummarizer extends LLMSummarizer {
     private final Gson gson = new Gson();
 
     @Override
+    // Method khusus untuk melakukan HTTP request (mengirim teks) ke server / API milik Groq.
+    // Menggunakan format payload standar OpenAI chat completion dengan model Llama.
     protected String callAPI(String prompt, int maxTokens) {
         String body = gson.toJson(Map.of(
                 "model", MODEL,
