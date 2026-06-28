@@ -55,6 +55,18 @@
             <artifactId>dotenv-java</artifactId>
             <version>3.0.0</version>
         </dependency>
+
+        <!-- Lucene for Stopwords -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>9.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analysis-common</artifactId>
+            <version>9.8.0</version>
+        </dependency>
     </dependencies>
 
     <build>

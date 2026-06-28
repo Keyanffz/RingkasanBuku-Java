@@ -11,29 +11,41 @@ import java.util.stream.Collectors;
 public class TFIDFSummarizer implements Summarizer {
 
     private List<String> stopwords;
-
-    private static final Set<String> ABBREVIATIONS = Set.of(
-            "dr", "ir", "drs", "prof", "tbk", "pt", "cv", "no", "jl",
-            "dll", "dst", "yth", "an", "sda", "hlm", "vol", "ed", "dkk");
+    private Set<String> abbreviations;
 
     public TFIDFSummarizer() {
         this.stopwords = loadStopwords();
+        this.abbreviations = loadAbbreviations();
+    }
+
+    private Set<String> loadAbbreviations() {
+        Set<String> defaults = Set.of(
+                "dr", "ir", "drs", "prof", "tbk", "pt", "cv", "no", "jl",
+                "dll", "dst", "yth", "an", "sda", "hlm", "vol", "ed", "dkk");
+        try {
+            InputStream is = getClass().getResourceAsStream("/abbreviations_id.txt");
+            if (is != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                Set<String> fromFile = reader.lines()
+                        .map(String::trim)
+                        .filter(l -> !l.isEmpty())
+                        .collect(Collectors.toSet());
+                if (!fromFile.isEmpty()) return fromFile;
+            }
+        } catch (Exception ignored) {
+        }
+        return defaults;
     }
 
     private List<String> loadStopwords() {
-        List<String> defaults = new ArrayList<>(Arrays.asList(
-                "yang", "dan", "di", "ke", "dari", "ini", "itu", "dengan",
-                "untuk", "pada", "adalah", "dalam", "tidak", "akan", "juga",
-                "karena", "ada", "oleh", "atau", "bisa", "sudah", "saya",
-                "kami", "kita", "mereka", "dia", "ia", "nya", "kamu", "anda",
-                "bagi", "telah", "dapat", "lebih", "jika", "maka", "agar",
-                "seperti", "saja", "namun", "bahwa", "sehingga", "ketika",
-                "hal", "sebuah", "saat", "antara", "setelah", "hingga",
-                "sejak", "selama", "belum", "hanya", "jadi", "tapi", "tetapi",
-                "walaupun", "meskipun", "pun", "pula", "masih", "sedang",
-                "lagi", "tersebut", "merupakan", "yakni", "yaitu", "bahkan",
-                "secara", "salah", "satu", "dua", "tiga", "sangat", "lebih",
-                "paling", "sangat", "amat", "semua", "setiap", "para"));
+        List<String> defaults = new ArrayList<>();
+        for (Object stopWord : org.apache.lucene.analysis.id.IndonesianAnalyzer.getDefaultStopSet()) {
+            if (stopWord instanceof char[]) {
+                defaults.add(new String((char[]) stopWord));
+            } else {
+                defaults.add(stopWord.toString());
+            }
+        }
         try {
             InputStream is = getClass().getResourceAsStream("/stopwords_id.txt");
             if (is != null) {
@@ -109,7 +121,7 @@ public class TFIDFSummarizer implements Summarizer {
 
         if (lastWord.matches("\\d{1,2}"))
             return true;
-        return ABBREVIATIONS.contains(lastWord);
+        return abbreviations.contains(lastWord);
     }
 
     private List<String> tokenize(String sentence) {
