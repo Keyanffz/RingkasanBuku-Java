@@ -9,11 +9,11 @@ public class SummaryOptions {
         this.style = style;
     }
 
-    public int getSentenceCount() {
+    public int getSentenceCount(int totalSentences) {
         return switch (length) {
-            case SHORT -> 3;
-            case MEDIUM -> 5;
-            case LONG -> 8;
+            case SHORT -> Math.max(3, (int) Math.ceil(totalSentences * 0.2));
+            case MEDIUM -> Math.max(5, (int) Math.ceil(totalSentences * 0.4));
+            case LONG -> Math.max(8, (int) Math.ceil(totalSentences * 0.6));
         };
     }
 

@@ -66,7 +66,8 @@ public class TFIDFSummarizer implements Summarizer {
     // Method utama untuk melakukan ringkasan berbasis rule-based (TF-IDF)
     public String summarize(String text, SummaryOptions options) {
         List<String> sentences = splitSentences(text);
-        if (sentences.size() <= options.getSentenceCount()) return text;
+        int targetSentenceCount = options.getSentenceCount(sentences.size());
+        if (sentences.size() <= targetSentenceCount) return text;
 
         Map<String, Double> idf = computeIDF(sentences);
 
@@ -75,7 +76,7 @@ public class TFIDFSummarizer implements Summarizer {
             scores.put(i, scoreSentence(sentences.get(i), idf));
         }
 
-        int topN = Math.min(options.getSentenceCount(), sentences.size());
+        int topN = Math.min(targetSentenceCount, sentences.size());
         List<Integer> topIndices = scores.entrySet().stream()
             .sorted(Map.Entry.<Integer, Double>comparingByValue().reversed())
             .limit(topN)
