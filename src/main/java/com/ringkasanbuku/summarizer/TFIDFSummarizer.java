@@ -46,19 +46,6 @@ public class TFIDFSummarizer implements Summarizer {
                 defaults.add(stopWord.toString());
             }
         }
-        try {
-            InputStream is = getClass().getResourceAsStream("/stopwords_id.txt");
-            if (is != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                List<String> fromFile = reader.lines()
-                        .map(String::trim)
-                        .filter(l -> !l.isEmpty())
-                        .collect(Collectors.toList());
-                if (!fromFile.isEmpty())
-                    return fromFile;
-            }
-        } catch (Exception ignored) {
-        }
         return defaults;
     }
 
