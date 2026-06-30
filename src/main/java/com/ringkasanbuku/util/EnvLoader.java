@@ -4,7 +4,6 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 public class EnvLoader {
     private static final Dotenv dotenv = Dotenv.configure()
-            .directory("src/main/resources")
             .filename(".env")
             .ignoreIfMissing()
             .load();
